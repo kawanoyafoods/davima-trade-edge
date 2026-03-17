@@ -1006,6 +1006,22 @@ self.addEventListener('fetch', e => {
 <!-- ============================================================
      AUTH GATE — covers entire app until user is approved
      ============================================================ -->
+<!-- DAVIMA AI BUTTON - fixed overlay, always visible on login screen, hidden inside app -->
+<div id="davimaBtn" onclick="showAdminPage()" style="
+  display:flex;
+  position:fixed;top:14px;right:14px;z-index:8999;
+  align-items:center;gap:6px;
+  padding:6px 13px;
+  background:linear-gradient(135deg,rgba(29,78,216,0.25),rgba(8,145,178,0.2));
+  border:1.5px solid #3b82f6;
+  border-radius:7px;
+  cursor:pointer;
+  box-shadow:0 0 8px rgba(59,130,246,0.25);
+">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="#60a5fa"><path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4zm0 10c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></svg>
+  <span style="font-size:11px;font-weight:600;color:#93c5fd;letter-spacing:1px;font-family:'DM Mono',monospace">DAVIMA AI</span>
+</div>
+
 <div id="authGate" style="
   position:fixed;inset:0;z-index:9000;
   background:#04080f;
@@ -1015,22 +1031,7 @@ self.addEventListener('fetch', e => {
   overflow-y:auto;
   padding:20px;
 ">
-  <!-- Owner admin shortcut top-right of login screen -->
-  <div onclick="showAdminPage()" title="Owner Admin Panel" style="
-    position:absolute;top:14px;right:14px;
-    display:flex;align-items:center;gap:6px;
-    padding:6px 13px;
-    background:linear-gradient(135deg,rgba(29,78,216,0.25),rgba(8,145,178,0.2));
-    border:1.5px solid #3b82f6;
-    border-radius:7px;
-    cursor:pointer;
-    box-shadow:0 0 8px rgba(59,130,246,0.25);
-    transition:all 0.2s;
-  " onmouseover="this.style.boxShadow='0 0 16px rgba(59,130,246,0.5)'"
-     onmouseout="this.style.boxShadow='0 0 8px rgba(59,130,246,0.25)'">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="#60a5fa"><path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4zm0 10c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></svg>
-    <span style="font-size:11px;font-weight:600;color:#93c5fd;letter-spacing:1px">DAVIMA AI</span>
-  </div>
+
   <!-- Background glow -->
   <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:600px;height:600px;
@@ -1380,6 +1381,8 @@ function showRejectedScreen() {
 }
 
 function launchApp(user) {
+  var db = document.getElementById('davimaBtn');
+  if (db) db.style.display = 'none';
   document.getElementById('authGate').style.display = 'none';
   document.getElementById('pendingScreen').style.display = 'none';
   document.getElementById('rejectedScreen').style.display = 'none';
@@ -1410,6 +1413,9 @@ function showAuthError(id, msg) {
 
 // ── Auto-resume session on load ───────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  // Always hide admin page first
+  document.getElementById('adminPage').style.display = 'none';
+
   // Check if owner is accessing admin via secret hash
   if (window.location.hash === '#davima-admin') {
     showAdminPage();
@@ -1438,7 +1444,9 @@ function showAdminPage() {
   document.getElementById('pendingScreen').style.display = 'none';
   document.getElementById('rejectedScreen').style.display = 'none';
   document.getElementById('mainAppWrapper').style.display = 'none';
-  document.getElementById('adminPage').style.display = 'flex';
+  document.getElementById('davimaBtn').style.display = 'none';
+  var ap = document.getElementById('adminPage');
+  ap.setAttribute('style', "display:flex;position:fixed;inset:0;z-index:9999;background:#04080f;flex-direction:column;font-family:'DM Mono',monospace;overflow-y:auto");
 }
 
 function doAdminLogin() {
@@ -1450,7 +1458,7 @@ function doAdminLogin() {
     document.getElementById('adm_dash').style.display = 'flex';
     adminLoadUsers();
   } else {
-    err.textContent = 'Wrong login! User: davima | Pass: ufia2024';
+    err.textContent = 'Incorrect username or password. Try again.';
     err.style.display = 'block';
     document.getElementById('adm_p').value = '';
   }
@@ -1545,7 +1553,7 @@ function adminAddTest() {
 <!-- ============================================================
      ADMIN PAGE (same file, accessed via #davima-admin hash)
      ============================================================ -->
-<div id="adminPage" style="display:none;position:fixed;inset:0;z-index:9999;background:#04080f;flex-direction:column;font-family:'DM Mono',monospace;overflow-y:auto">
+<div id="adminPage" style="display:none!important;position:fixed;inset:0;z-index:9999;background:#04080f;flex-direction:column;font-family:'DM Mono',monospace;overflow-y:auto">
 
   <!-- Admin Login -->
   <div id="adm_login" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
@@ -1579,7 +1587,7 @@ function adminAddTest() {
       <div style="font-size:16px;font-weight:700;color:#e2e8f0">DAVIMA <span style="color:#3b82f6">AI</span> <span style="font-size:11px;color:#4a6280;font-weight:400">— Admin</span></div>
       <div style="display:flex;gap:8px">
         <button onclick="adminAddTest()" style="padding:6px 12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;border-radius:5px">+ Test User</button>
-        <button onclick="document.getElementById('adminPage').style.display='none';document.getElementById('authGate').style.display='flex';history.replaceState(null,'',window.location.pathname);" style="padding:6px 12px;background:none;border:1px solid #1e2d47;color:#4a6280;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;border-radius:5px">Exit</button>
+        <button onclick="var ap=document.getElementById('adminPage');ap.setAttribute('style','display:none!important;position:fixed;inset:0;z-index:9999;background:#04080f;flex-direction:column;font-family:\'DM Mono\',monospace;overflow-y:auto');document.getElementById('adm_login').style.display='flex';document.getElementById('adm_dash').style.display='none';document.getElementById('adm_u').value='';document.getElementById('adm_p').value='';document.getElementById('authGate').style.display='flex';document.getElementById('davimaBtn').style.display='flex';history.replaceState(null,'',window.location.pathname);" style="padding:6px 12px;background:none;border:1px solid #1e2d47;color:#4a6280;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;border-radius:5px">Exit</button>
       </div>
     </div>
 
@@ -1906,6 +1914,12 @@ window.addEventListener('DOMContentLoaded', function(){ setTimeout(updateAdminBa
       <div class="optimal-time time-neutral" id="optimalTimeBox">Checking session status...</div>
     </div>
 
+    <!-- Entry Time Window -->
+    <div class="timing-panel" id="entryTimePanel">
+      <div class="section-head">⏰ Your Entry Time Window</div>
+      <div id="entryTimeCard" style="padding:10px 14px 14px">Calculating your best entry times...</div>
+    </div>
+
     <!-- AI Coach -->
     <div class="coach-section">
       <div class="section-head" style="padding:10px 14px 0">🧠 AI Trading Coach</div>
@@ -1931,6 +1945,7 @@ window.addEventListener('DOMContentLoaded', function(){ setTimeout(updateAdminBa
 // CONFIGURATION
 // ============================================================
 const TWELVE_API_KEY = 'fb8337538aef4c0fa091f3c412f75874';
+const ANTHROPIC_API_KEY = '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';
 
 const MARKETS = {
   crypto: [
@@ -2044,7 +2059,42 @@ async function refreshCurrentSymbol() {
 
 async function refreshAllPrices() {
   const allSyms = Object.values(MARKETS).flat();
-  // Batch 6 symbols
+
+  // On weekends freeze forex — only crypto and stocks update
+  if (isForexWeekend()) {
+    const nonForex = allSyms.filter(s => !isForexSymbol(s.sym));
+    const forexSyms = allSyms.filter(s => isForexSymbol(s.sym));
+    // Freeze forex prices — no simulation, no update
+    forexSyms.forEach(s => {
+      // Keep last known price, just don't move it
+      if (!state.prices[s.sym]) state.prices[s.sym] = s.base;
+    });
+    document.getElementById('feedStatus').textContent = 'FOREX CLOSED';
+    // Only fetch non-forex
+    const batch = nonForex.slice(0, 6);
+    const apiSyms2 = batch.map(s => s.apiSym).join(',');
+    try {
+      const r2 = await fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(apiSyms2)}&apikey=${TWELVE_API_KEY}`);
+      const d2 = await r2.json();
+      batch.forEach(s => {
+        const entry = d2[s.apiSym];
+        if (entry && entry.price && !entry.code) {
+          const p = parseFloat(entry.price);
+          state.prices[s.sym] = p;
+          state.history[s.sym].push(p);
+          if (state.history[s.sym].length > 200) state.history[s.sym].shift();
+        } else {
+          simulateSym(s);
+        }
+      });
+    } catch(e) {
+      nonForex.forEach(simulateSym);
+      document.getElementById('feedStatus').textContent = 'SIMULATED';
+    }
+    return; // Exit early — skip normal fetch below
+  }
+
+  // Normal weekday fetch — all symbols
   const batch = allSyms.slice(0, 6);
   const apiSyms = batch.map(s => s.apiSym).join(',');
   try {
@@ -2232,6 +2282,30 @@ function computeSignal(sym) {
 function renderSymbolList() {
   const list = document.getElementById('symbolList');
   const items = MARKETS[state.market];
+
+  // Show weekend closed banner for forex
+  if (state.market === 'forex' && isForexWeekend()) {
+    list.innerHTML = `<div style="padding:16px;text-align:center;border:1px solid rgba(239,68,68,0.3);border-radius:8px;margin:10px;background:rgba(239,68,68,0.06)">
+      <div style="font-size:18px;margin-bottom:6px">🔴</div>
+      <div style="font-size:12px;font-weight:600;color:#f87171;letter-spacing:1px;margin-bottom:4px">FOREX MARKET CLOSED</div>
+      <div style="font-size:10px;color:#4a6280;line-height:1.5">Weekend — Market closed<br>Friday 22:00 UTC → Sunday 22:00 UTC<br><span style="color:#f59e0b">Reopens Monday morning</span></div>
+    </div>` + items.map(s => {
+      const price = state.prices[s.sym] || s.base;
+      return `<div class="sym-row" style="opacity:0.35;pointer-events:none">
+        <div class="sym-info">
+          <div class="sym-name">${s.display}</div>
+          <div class="sym-sub">${s.name}</div>
+        </div>
+        <div class="sym-data">
+          <div class="sym-price" style="color:#4a6280">${fmtPrice(s.sym, price)}</div>
+          <div class="sym-chg" style="color:#4a6280">CLOSED</div>
+        </div>
+        <div class="sym-sig" style="background:#4a6280"></div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
   list.innerHTML = items.map(s => {
     const price = state.prices[s.sym];
     const chg = pctChange(s.sym);
@@ -2558,6 +2632,23 @@ function calculateRisk() {
 // ============================================================
 // MARKET SESSIONS
 // ============================================================
+// ── Weekend / Market Closed Detection ────────────────────────
+function isForexWeekend() {
+  const now = new Date();
+  const day = now.getUTCDay(); // 0=Sun, 1=Mon...5=Fri, 6=Sat
+  const utcH = now.getUTCHours();
+  // Forex closes Friday 22:00 UTC, reopens Sunday 22:00 UTC
+  if (day === 6) return true;                        // All Saturday
+  if (day === 0 && utcH < 22) return true;           // Sunday before 22:00 UTC
+  if (day === 5 && utcH >= 22) return true;          // Friday after 22:00 UTC
+  return false;
+}
+
+function isForexSymbol(sym) {
+  const forexSyms = ['EUR/USD','GBP/USD','USD/JPY','AUD/USD','USD/CAD'];
+  return forexSyms.includes(sym);
+}
+
 function updateSessions() {
   const now = new Date();
   const utcH = now.getUTCHours();
@@ -2595,7 +2686,17 @@ function updateSessions() {
   const overlap = londonOpen && nyOpen;
   const optEl = document.getElementById('optimalTimeBox');
 
-  if (overlap) {
+  if (isForexWeekend()) {
+    optEl.className = 'optimal-time time-bad';
+    optEl.textContent = '🔴 FOREX MARKET CLOSED: Weekend — Forex is closed from Friday 22:00 UTC to Sunday 22:00 UTC. Only Crypto is trading. Markets reopen Monday.';
+    document.getElementById('statSession').textContent = 'CLOSED';
+    // Mark all sessions as closed during weekend
+    grid.innerHTML = sessions.map(s => `<div class="session-card">
+      <div class="session-name">${s.name.toUpperCase()}</div>
+      <div class="session-time">${s.label}</div>
+      <div class="session-status s-closed">WEEKEND</div>
+    </div>`).join('');
+  } else if (overlap) {
     optEl.className = 'optimal-time time-good';
     optEl.textContent = '🟢 OPTIMAL TIME: London-NY overlap active (08:00–17:00 UTC). Highest liquidity & volatility. Best time for breakout trades.';
     document.getElementById('statSession').textContent = 'OPTIMAL';
@@ -2732,7 +2833,7 @@ Format your responses with **bold** for important numbers. Keep responses concis
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
@@ -2947,10 +3048,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Sessions update every minute
   setInterval(updateSessions, 60000);
 
-  // Welcome coach message
+  // Init entry time card
+  renderEntryTimeCard();
+
+  // Welcome coach message + entry time briefing
   setTimeout(() => {
     addCoachMessage('ai', `👋 Welcome to **Ufia Trade Edge** — your AI-powered trading assistant!\n\nI'm watching the live market for you right now. Here's what I can do:\n\n📊 **Analyze signals** — RSI, MACD, Bollinger Bands, MA, Volume\n⚖️ **Risk management** — lot sizing, position protection\n📰 **News sentiment** — understand market-moving news\n🕐 **Best trade timing** — identify high-probability windows\n\nTo get started, tell me your **account balance** and which **pair you're watching**, and I'll give you my honest assessment! 💪`);
   }, 1500);
+
+  // Send entry time briefing to coach after welcome
+  setTimeout(() => {
+    sendEntryTimeBriefing();
+  }, 3000);
+
+  // Show entry time popup after a short delay
+  setTimeout(() => {
+    showEntryTimePopup();
+  }, 4000);
 });
 </script>
 
@@ -3279,7 +3393,7 @@ CORE RULES:
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
@@ -3304,9 +3418,294 @@ CORE RULES:
   state.coachTyping = false;
   document.getElementById('coachSendBtn').disabled = false;
 };
+
+// ============================================================
+// ENTRY TIME WINDOW ENGINE
+// ============================================================
+const ENTRY_WINDOWS = {
+  scalper: {
+    sessions: [
+      { name: 'London-NY Overlap', utcStart: 13, utcEnd: 17, quality: 'best', reason: 'Highest volume & tight spreads' },
+      { name: 'London Open', utcStart: 8, utcEnd: 10, quality: 'good', reason: 'Strong momentum at open' },
+      { name: 'NY Open', utcStart: 13, utcEnd: 15, quality: 'good', reason: 'High volatility at NY open' },
+    ],
+    bestDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+    avoidDays: ['Friday', 'Saturday', 'Sunday'],
+    avoidTimes: [{ utcStart: 17, utcEnd: 20, reason: 'Dead zone — low liquidity after NY afternoon' }, { utcStart: 22, utcEnd: 7, reason: 'Asian session only — wide spreads' }],
+    tip: 'Scalp ONLY during London-NY overlap. Avoid all other times.',
+  },
+  daytrader: {
+    sessions: [
+      { name: 'London Session', utcStart: 8, utcEnd: 17, quality: 'good', reason: 'Active Forex & European stocks' },
+      { name: 'NY Session', utcStart: 13, utcEnd: 22, quality: 'good', reason: 'US stocks & Forex active' },
+      { name: 'London-NY Overlap', utcStart: 13, utcEnd: 17, quality: 'best', reason: 'Peak liquidity — best entries' },
+    ],
+    bestDays: ['Tuesday', 'Wednesday', 'Thursday'],
+    avoidDays: ['Monday', 'Friday', 'Saturday', 'Sunday'],
+    avoidTimes: [{ utcStart: 22, utcEnd: 8, reason: 'Asian session — low activity for day traders' }],
+    tip: 'Focus entries between 08:00–22:00 UTC. Close ALL trades before 22:00 UTC.',
+  },
+  swing: {
+    sessions: [
+      { name: 'Daily Close (4H Check)', utcStart: 20, utcEnd: 22, quality: 'best', reason: 'Check & set trades before daily close' },
+      { name: 'London Open Check', utcStart: 7, utcEnd: 9, quality: 'good', reason: 'Review overnight moves' },
+      { name: 'NY Open Check', utcStart: 13, utcEnd: 14, quality: 'good', reason: 'Midday position review' },
+    ],
+    bestDays: ['Monday', 'Tuesday', 'Wednesday'],
+    avoidDays: ['Friday', 'Saturday', 'Sunday'],
+    avoidTimes: [{ utcStart: 22, utcEnd: 20, reason: 'No specific avoid — just check twice daily' }],
+    tip: 'Check charts only at London open, NY open & daily close. Do NOT watch minute-by-minute.',
+  },
+  position: {
+    sessions: [
+      { name: 'Weekly Review', utcStart: 20, utcEnd: 22, quality: 'best', reason: 'Sunday/Monday: set week\'s positions' },
+      { name: 'Daily Candle Close', utcStart: 21, utcEnd: 22, quality: 'good', reason: 'Enter after confirmed daily close' },
+    ],
+    bestDays: ['Monday', 'Tuesday'],
+    avoidDays: ['Friday', 'Saturday', 'Sunday'],
+    avoidTimes: [],
+    tip: 'Enter ONLY on confirmed daily or weekly candle closes. Check once per day maximum.',
+  },
+  algorithmic: {
+    sessions: [
+      { name: 'London-NY Overlap', utcStart: 13, utcEnd: 17, quality: 'best', reason: 'Highest signal accuracy' },
+      { name: 'London Open', utcStart: 8, utcEnd: 10, quality: 'good', reason: 'Strong signal triggers' },
+      { name: 'NY Open', utcStart: 13, utcEnd: 15, quality: 'good', reason: 'Algo signal confirmation' },
+    ],
+    bestDays: ['Tuesday', 'Wednesday', 'Thursday'],
+    avoidDays: ['Friday', 'Saturday', 'Sunday'],
+    avoidTimes: [{ utcStart: 17, utcEnd: 20, reason: 'Post-overlap lull — signals less reliable' }],
+    tip: 'Follow AI signals ONLY during London and NY sessions for best accuracy.',
+  },
+  news: {
+    sessions: [
+      { name: 'NFP Release (1st Friday)', utcStart: 12, utcEnd: 13, quality: 'best', reason: '1st Friday each month — massive move' },
+      { name: 'FOMC / CPI Events', utcStart: 18, utcEnd: 19, quality: 'best', reason: 'Major USD events — check calendar' },
+      { name: 'London Open News', utcStart: 8, utcEnd: 9, quality: 'good', reason: 'European economic releases' },
+    ],
+    bestDays: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    avoidDays: ['Monday', 'Saturday', 'Sunday'],
+    avoidTimes: [{ utcStart: 9, utcEnd: 12, reason: 'Quiet period — wait for NY news' }],
+    tip: 'Always check the economic calendar BEFORE entering. Never trade 30min before major news.',
+  },
+};
+
+function getLocalTimeFromUTC(utcHour) {
+  const now = new Date();
+  const utcMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), utcHour, 0, 0);
+  const local = new Date(utcMs);
+  return local.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+function getCountdownToWindow(utcStart) {
+  const now = new Date();
+  const utcNow = now.getUTCHours() + now.getUTCMinutes() / 60;
+  let diff = utcStart - utcNow;
+  if (diff < 0) diff += 24;
+  const hrs = Math.floor(diff);
+  const mins = Math.round((diff - hrs) * 60);
+  if (hrs === 0 && mins === 0) return 'NOW';
+  if (hrs === 0) return `${mins}m`;
+  return `${hrs}h ${mins}m`;
+}
+
+function isWindowActive(utcStart, utcEnd) {
+  const now = new Date();
+  const utcNow = now.getUTCHours() + now.getUTCMinutes() / 60;
+  if (utcStart < utcEnd) return utcNow >= utcStart && utcNow < utcEnd;
+  return utcNow >= utcStart || utcNow < utcEnd;
+}
+
+function isAvoidTime(avoidTimes) {
+  const now = new Date();
+  const utcNow = now.getUTCHours() + now.getUTCMinutes() / 60;
+  return avoidTimes.some(t => {
+    if (t.utcStart < t.utcEnd) return utcNow >= t.utcStart && utcNow < t.utcEnd;
+    return utcNow >= t.utcStart || utcNow < t.utcEnd;
+  });
+}
+
+function getCurrentDayName() {
+  return new Date().toLocaleDateString('en-US', { weekday: 'long' });
+}
+
+function buildEntryTimeHTML(traderType) {
+  const w = ENTRY_WINDOWS[traderType.id];
+  if (!w) return '<div style="color:#4a6280;font-size:12px">No data for this trader type.</div>';
+
+  const today = getCurrentDayName();
+  const isBadDay = w.avoidDays.includes(today);
+  const isBestDay = w.bestDays.includes(today);
+  const avoiding = isAvoidTime(w.avoidTimes);
+
+  let activeWindow = null;
+  let nextWindow = null;
+  for (const s of w.sessions) {
+    if (isWindowActive(s.utcStart, s.utcEnd)) { activeWindow = s; break; }
+  }
+  if (!activeWindow) {
+    // Find next upcoming window
+    const now = new Date();
+    const utcNow = now.getUTCHours() + now.getUTCMinutes() / 60;
+    let minDiff = 999;
+    for (const s of w.sessions) {
+      let diff = s.utcStart - utcNow;
+      if (diff < 0) diff += 24;
+      if (diff < minDiff) { minDiff = diff; nextWindow = s; }
+    }
+  }
+
+  let html = '';
+
+  // Status bar
+  if (isBadDay) {
+    html += `<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#f87171">
+      ⛔ <strong>Today is ${today}</strong> — Not recommended for ${traderType.name}s. Consider waiting until ${w.bestDays[0]}.
+    </div>`;
+  } else if (isBestDay && activeWindow) {
+    html += `<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#34d399">
+      ✅ <strong>RIGHT NOW is a great time to trade!</strong> You are inside the <strong>${activeWindow.name}</strong> window.
+    </div>`;
+  } else if (activeWindow) {
+    html += `<div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#93c5fd">
+      🟡 <strong>Active window: ${activeWindow.name}</strong> — ${activeWindow.reason}
+    </div>`;
+  } else if (avoiding) {
+    const avoidMatch = w.avoidTimes.find(t => isAvoidTime([t]));
+    html += `<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#f87171">
+      ⚠️ <strong>AVOID TRADING NOW</strong> — ${avoidMatch ? avoidMatch.reason : 'Bad liquidity period'}
+    </div>`;
+  } else {
+    html += `<div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#fcd34d">
+      🕐 <strong>Outside entry window</strong> — Next: ${nextWindow ? nextWindow.name + ' in ' + getCountdownToWindow(nextWindow.utcStart) : 'N/A'}
+    </div>`;
+  }
+
+  // Session windows
+  html += `<div style="font-size:10px;color:#4a6280;letter-spacing:1px;margin-bottom:8px">BEST ENTRY WINDOWS (YOUR LOCAL TIME)</div>`;
+  html += `<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">`;
+  for (const s of w.sessions) {
+    const active = isWindowActive(s.utcStart, s.utcEnd);
+    const localStart = getLocalTimeFromUTC(s.utcStart);
+    const localEnd = getLocalTimeFromUTC(s.utcEnd);
+    const countdown = active ? '● ACTIVE NOW' : `in ${getCountdownToWindow(s.utcStart)}`;
+    const qualColor = s.quality === 'best' ? '#10b981' : '#f59e0b';
+    const activeBg = active ? 'rgba(16,185,129,0.08)' : 'transparent';
+    html += `<div style="background:${activeBg};border:1px solid ${active ? 'rgba(16,185,129,0.3)' : '#1e2d47'};border-radius:8px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#e2e8f0">${s.name}</div>
+        <div style="font-size:10px;color:#4a6280;margin-top:2px">${localStart} – ${localEnd} <span style="color:#2d3f58">• UTC ${s.utcStart}:00–${s.utcEnd}:00</span></div>
+        <div style="font-size:10px;color:#6b7f9a;margin-top:2px">${s.reason}</div>
+      </div>
+      <div style="text-align:right;min-width:80px">
+        <div style="font-size:10px;color:${qualColor};font-weight:700;letter-spacing:0.5px">${s.quality.toUpperCase()}</div>
+        <div style="font-size:10px;color:${active ? '#34d399' : '#4a6280'};margin-top:3px">${countdown}</div>
+      </div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // Best days
+  html += `<div style="font-size:10px;color:#4a6280;letter-spacing:1px;margin-bottom:8px">BEST DAYS TO TRADE</div>`;
+  html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">`;
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  for (const d of days) {
+    const isBest = w.bestDays.includes(d);
+    const isAvoid = w.avoidDays.includes(d);
+    const isToday = d === today;
+    const bg = isBest ? 'rgba(16,185,129,0.15)' : isAvoid ? 'rgba(239,68,68,0.1)' : 'rgba(30,45,71,0.4)';
+    const border = isBest ? 'rgba(16,185,129,0.4)' : isAvoid ? 'rgba(239,68,68,0.3)' : '#1e2d47';
+    const color = isBest ? '#34d399' : isAvoid ? '#f87171' : '#4a6280';
+    const todayRing = isToday ? ';outline:2px solid #f59e0b;outline-offset:2px' : '';
+    html += `<div style="padding:5px 10px;border-radius:6px;background:${bg};border:1px solid ${border};font-size:11px;font-weight:${isToday?'700':'500'};color:${color}${todayRing}">${d.slice(0,3)}${isToday?' ◀':''}</div>`;
+  }
+  html += `</div>`;
+
+  // Pro tip
+  html += `<div style="background:rgba(6,182,212,0.07);border:1px solid rgba(6,182,212,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:#67e8f9;line-height:1.6">
+    💡 <strong>Tip:</strong> ${w.tip}
+  </div>`;
+
+  return html;
+}
+
+function renderEntryTimeCard() {
+  const html = buildEntryTimeHTML(currentTraderType);
+  document.getElementById('entryTimeCard').innerHTML = html;
+  document.getElementById('entryTimeModalBody').innerHTML = html;
+}
+
+// Show entry time popup on app load and when trader type changes
+function showEntryTimePopup() {
+  renderEntryTimeCard();
+  document.getElementById('entryTimeModal').style.display = 'flex';
+}
+
+// Override selectTraderType to also update entry window
+const _origSelectTrader = selectTraderType;
+selectTraderType = function(id) {
+  _origSelectTrader(id);
+  renderEntryTimeCard();
+  // Show popup after small delay
+  setTimeout(showEntryTimePopup, 400);
+};
+
+// Refresh entry card every minute
+setInterval(renderEntryTimeCard, 60000);
+
+// Send entry time briefing to AI coach on load
+function sendEntryTimeBriefing() {
+  const w = ENTRY_WINDOWS[currentTraderType.id];
+  if (!w) return;
+  const today = getCurrentDayName();
+  const isBadDay = w.avoidDays.includes(today);
+  const now = new Date();
+  const utcNow = now.getUTCHours() + now.getUTCMinutes() / 60;
+  let activeWindow = w.sessions.find(s => isWindowActive(s.utcStart, s.utcEnd));
+  let nextWindow = null;
+  if (!activeWindow) {
+    let minDiff = 999;
+    for (const s of w.sessions) {
+      let diff = s.utcStart - utcNow;
+      if (diff < 0) diff += 24;
+      if (diff < minDiff) { minDiff = diff; nextWindow = s; }
+    }
+  }
+
+  let msg = `📅 **Your Trading Schedule — ${currentTraderType.icon} ${currentTraderType.name}**\n\n`;
+  msg += `**Today:** ${today} — ${w.bestDays.includes(today) ? '✅ Good day to trade!' : w.avoidDays.includes(today) ? '⛔ Avoid trading today' : '🟡 Neutral day'}\n\n`;
+
+  if (activeWindow) {
+    msg += `**Right now:** You are inside the **${activeWindow.name}** window — ${activeWindow.reason}\n\n`;
+  } else if (nextWindow) {
+    msg += `**Next window:** ${nextWindow.name} starts in **${getCountdownToWindow(nextWindow.utcStart)}** (${getLocalTimeFromUTC(nextWindow.utcStart)} your time)\n\n`;
+  }
+
+  msg += `**Best entry windows (your local time):**\n`;
+  for (const s of w.sessions) {
+    msg += `• ${s.name}: ${getLocalTimeFromUTC(s.utcStart)} – ${getLocalTimeFromUTC(s.utcEnd)} (${s.quality.toUpperCase()})\n`;
+  }
+
+  msg += `\n**Best days:** ${w.bestDays.join(', ')}\n`;
+  msg += `**Avoid:** ${w.avoidDays.join(', ')}\n\n`;
+  msg += `💡 ${w.tip}`;
+
+  addCoachMessage('system', msg);
+}
 </script>
 
 </div><!-- end mainAppWrapper -->
+
+<!-- Entry Time Popup Modal -->
+<div id="entryTimeModal" style="display:none;position:fixed;inset:0;background:rgba(4,8,15,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0c1525;border:1px solid #1e2d47;border-radius:16px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #1e2d47">
+      <div style="font-size:15px;font-weight:700;color:#e2e8f0">⏰ Your Trading Schedule</div>
+      <button onclick="document.getElementById('entryTimeModal').style.display='none'" style="background:none;border:none;color:#4a6280;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div id="entryTimeModalBody" style="padding:18px"></div>
+  </div>
+</div>
 
 </body>
 </html>
